@@ -65,7 +65,7 @@ def get_evaluation_fbProphetMultivariate(
     df: pd.DataFrame,
     ItemNumber: str,
     model_name: str,
-    regressors: List(str),
+    regressors: List[str],
     log: bool
 ) -> pd.DataFrame:
     """Add the RMSE and NRMSE for a ItemNumber.
@@ -112,7 +112,9 @@ def get_evaluation_fbProphetMultivariate(
     fb_prophet_forecast = fbProphetMultivariate(
         tmp,
         start_date='2018-01-01',
-        regressors=regressors
+        regressors=regressors,
+        log=log
+
     )
     # NRMSE
     sample.loc[
