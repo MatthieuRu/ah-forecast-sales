@@ -11,7 +11,7 @@ They is 4 different steps in the project:
 5. Architecture to deploy in production
 
 
-- ```git clone git@github.com:MatthieuRu/ ah-forecast-sales.git``` *Git clone the project from Github.*
+- ```git clone https://github.com/MatthieuRu/ah-forecast-sales.git``` *Git clone the project from Github.*
 - ```conda env create``` *Create the conda environment based on the environment.yml.*
 - ```conda activate ah-forecast-sales``` *Activate the conda environment.*
 - ```python app.py``` *Run the app to vizualise the results*
@@ -21,7 +21,7 @@ They is 4 different steps in the project:
 
 Before to start the project, the stakeholders of these project has discussed about the expected output of the package:
 
-- A Proof of concept of a tool able to *forecast the number of demand for a specific product a week ahead*.
+- A Proof of concept: a tool able to *forecast the number of unit sales for a specific product a week ahead*.
 
 After the discussion, the output of the project should cover some topics:
 
@@ -32,8 +32,6 @@ After the discussion, the output of the project should cover some topics:
 
 ### 2. Explotary Data Analysis
 
-#### Analysis
-
 - None Values x Constante variables x Data Transformation
 - Ditribution of the feature (Continuious and Categorical variables)
 - Correlation between variables and UnitSales
@@ -43,22 +41,22 @@ After the discussion, the output of the project should cover some topics:
 
 #### **Research**
 
-The decision has been taken to focus on the main library fbProphet for time series. The library has been developed by Facebook and provide good results. The aim is to start from the algorithm and then adjust the parameters and the model, to be able to improve the model based on the **same KPI**.
+The decision has been taken to focus on the library fbProphet for time series. The library has been developed by Facebook and it is a well-known time series packages. The aim is to start from the same algorithm and then adjust the parameters to improve the model based on the **same KPI**.
 
 - a. Two Univariate Times Series for product promotion and not in promotion
 - b. Multivariate Time Series with correlated variable (IsPromo)
 - c. Multivariate Time Series with correlated variable (IsPromo and Communication Channel)
-- d. Multivariate Time Series with correlated variable (Communication Channel) and do a logarithm transformation for UnitSales
+- d. Multivariate Time Series with correlated variable (IsPromo and Communication Channel) and do a logarithm transformation for UnitSales
 
 
 #### **The evaluation of the model will be based on:**
 
-<img src="https://render.githubusercontent.com/render/math?math=RMSE = \sqrt{\dfrac{\sum_{i=1}^{n}(y_i - \hat{y})}{n}}">
+<img src="https://render.githubusercontent.com/render/math?math=RMSE = \sqrt{\dfrac{\sum_{i=1}^{n}(y_i - \overline{y})}{n}}">
 
 
 <img src="https://render.githubusercontent.com/render/math?math=NRMSE = \dfrac{RMSE}{\hat{y}}">
 
-We use NRMSE to be able to compare a model for all product. Because the RMSE is linked to scale of the UnitSales for a product.
+We use NRMSE to be able to compare a model for all productw. Because the RMSE is linked to scale of the UnitSales for a product.
 
 - If the average of the UnitSales for a product A is 1000: a RMSE of 1000 will give a NRMSE of 1
 - If the average of the UnitSales for a product B is 10: a RMSE of 10 will give a NRMSE of 1
@@ -67,7 +65,7 @@ We use NRMSE to be able to compare a model for all product. Because the RMSE is 
 
 Based on the NRMSE, the best model is:
 
-*Multivariate Time Series with correlated variable (Communication Channel) and do a logarithm transformation for UnitSales*
+*Multivariate Time Series with correlated variable (IsPromo and Communication Channel) and do a logarithm transformation for UnitSales*
 
 <table border="1" class="dataframe">
   <thead>
@@ -126,10 +124,20 @@ Based on the NRMSE, the best model is:
 
 The main goal of the app is to see a proof of concept how the model and the forecast can be used as a solution. You select your product and then you can get what will be the supply and demand for the next week.
 
-Once you have run the command ```python app.py```. got to http://0.0.0.0:8050/
+Once you have run the command ```python app.py```, go to http://0.0.0.0:8050/
 
 <img src='app.png' width="500" height="200">
 
 ### 4. Deployement in Production
 
 <img src='ML-Architecure.png' width="500" height="200">
+
+
+*To deploy in production*, we should create a ML Pipeline:
+
+
+1. They is a bucket on *S3*, where all the historic are saved.
+2. Every time they are a new data on *s3*, a *lambda function* (serverless compute service) are triggered a *ECS task* (container service).
+3. The ECS tasks is an image with the repositories ah-forecast-sales and will retrain the model using the new historic data and save all the information linked to the model. The model is product specicifs, they is one model for each ItemNumber saved as a class fbProphetMultivariate. At this time, the changes are done only on the development.
+4. Once a week / a month, we can push the development branch into the product branch after further validation
+5. A EC2 instance is running with the app and the backend. they are using only the model in production. The user can vizualize the forecast, but also the historic data and extract the data.
